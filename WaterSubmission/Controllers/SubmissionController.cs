@@ -35,10 +35,20 @@ namespace WaterSubmission.Controllers
             var submissionPrice = await _pricingService.GetPrice(CreatePriceRequest(submission));
             submission.SubmissionPrice = submissionPrice;
 
-            Task submitAccountingTask = _accountingControlService.SubmitAccounting(submission);
-            Task submitStatusTask = _statusControlService.SubmitStatus(submission);
+            var submitAccountingTask = _accountingControlService.SubmitAccounting(submission);
+            var submitStatusTask = _statusControlService.SubmitStatus(submission);
 
             await Task.WhenAll(submitAccountingTask, submitStatusTask);
+
+            if (submitAccountingTask.Result != System.Net.HttpStatusCode.OK){
+                _logger.LogError($"Accounting control returned {submitAccountingTask.Result}");
+                return BadRequest();
+            }
+            if (submitStatusTask.Result != System.Net.HttpStatusCode.OK)
+            {
+                _logger.LogError($"Status control returned {submitStatusTask.Result}");
+                return BadRequest();
+            }
 
             return Ok();
         }

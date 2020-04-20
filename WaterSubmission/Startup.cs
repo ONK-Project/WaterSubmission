@@ -33,7 +33,7 @@ namespace WaterSubmission
             services.AddControllers();
 
             services.AddScoped<IAccountingControlService, AccountingControlService>();
-            services.AddScoped<IStatusControlService, StatusControlService>();
+            services.AddScoped<IStatusControlService, MockStatusControlService>();
             services.AddScoped<IPricingService, PricingService>();
             services.AddScoped<HttpClient, HttpClient>();
 

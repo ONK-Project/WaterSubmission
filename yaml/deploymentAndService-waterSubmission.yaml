@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: watersubmission
+  namespace: "proj-gr4"
+  labels:
+    app: watersubmission
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: watersubmission
+  template:
+    metadata:
+      labels:
+        app: watersubmission
+    spec:
+      containers:
+      - name: watersubmission
+        image: jones109/watersubmission:latest
+---
+apiVersion: v1
+kind: Service
+metadata: 
+  name: watersubmission
+  namespace: "proj-gr4"
+spec:
+  selector:
+    app: watersubmission
+  ports:
+    - port: 8080
+      targetPort: 80
+  type: LoadBalancer
+    
+      
+      

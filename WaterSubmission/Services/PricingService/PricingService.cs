@@ -33,9 +33,13 @@ namespace WaterSubmission.Services.PricingService
 
         private string CreateGetUrl(PriceRequest priceRequest) 
         {
-            var getUrl = BaseUrl + "? ressourceusage = [RessourceUsage] & datetime = [DateTime] & unitofmeassure = [UnitOfMeassure]";
+            var getUrl = BaseUrl + "?ressourceusage=[RessourceUsage]&datetime=[DateTime]&unitofmeassure=[UnitOfMeassure]";
             getUrl = getUrl.Replace("[RessourceUsage]", priceRequest.RessourceUsage.ToString());
-            getUrl = getUrl.Replace("[DateTime]", priceRequest.DateTime.ToString());
+
+            var settings = new JsonSerializerSettings { DateFormatString = "yyyy-MM-ddTHH:mm:ss.fffZ" };
+            var dateTimeString = JsonConvert.SerializeObject(priceRequest.DateTime, settings);
+            dateTimeString = dateTimeString.Trim(new char[] {'/', '"' });
+            getUrl = getUrl.Replace("[DateTime]", dateTimeString);
             getUrl = getUrl.Replace("[UnitOfMeassure]", priceRequest.UnitOfMeassure);
 
             return getUrl;
