@@ -5,6 +5,10 @@ using WaterSubmission.Services.AccountingControlService;
 using WaterSubmission.Services.PricingService;
 using WaterSubmission.Services.StatusControlService;
 using Models;
+using KubeMQ.SDK.csharp.Events.LowLevel;
+using Microsoft.Extensions.Configuration;
+using WaterSubmission.Data;
+using KubeMQ.SDK.csharp.Tools;
 
 namespace WaterSubmission.Controllers
 {
@@ -12,21 +16,27 @@ namespace WaterSubmission.Controllers
     [Route("api/v1/[controller]")]
     public class SubmissionController : ControllerBase
     {
+        private readonly IAccountControlKubeMQSettings _mqSettings;
         private readonly ILogger<SubmissionController> _logger;
         private readonly IAccountingControlService _accountingControlService;
         private readonly IStatusControlService _statusControlService;
         private readonly IPricingService _pricingService;
+        private Sender sender;
 
         public SubmissionController(
+            IAccountControlKubeMQSettings mqSettings,
             ILogger<SubmissionController> logger, 
             IAccountingControlService accountingControlService,
             IStatusControlService statusControlService,
             IPricingService pricingService)
         {
+            _mqSettings = mqSettings;
             _logger = logger;
-            this._accountingControlService = accountingControlService;
-            this._statusControlService = statusControlService;
-            this._pricingService = pricingService;
+            _accountingControlService = accountingControlService;
+            _statusControlService = statusControlService;
+            _pricingService = pricingService;
+
+            sender = new Sender(_mqSettings.KubeMQServerAddress, _logger);
         }
 
         [HttpPost]
@@ -35,20 +45,7 @@ namespace WaterSubmission.Controllers
             var submissionPrice = await _pricingService.GetPrice(CreatePriceRequest(submission));
             submission.SubmissionPrice = submissionPrice;
 
-            var submitAccountingTask = _accountingControlService.SubmitAccounting(submission);
-            var submitStatusTask = _statusControlService.SubmitStatus(submission);
-
-            await Task.WhenAll(submitAccountingTask, submitStatusTask);
-
-            if (submitAccountingTask.Result != System.Net.HttpStatusCode.OK){
-                _logger.LogError($"Accounting control returned {submitAccountingTask.Result}");
-                return BadRequest();
-            }
-            if (submitStatusTask.Result != System.Net.HttpStatusCode.OK)
-            {
-                _logger.LogError($"Status control returned {submitStatusTask.Result}");
-                return BadRequest();
-            }
+            raiseSubmissionEvent(submission);
 
             return Ok();
         }
@@ -62,6 +59,19 @@ namespace WaterSubmission.Controllers
             };
 
             return priceRequest;
+        }
+
+        void raiseSubmissionEvent(Submission submission)
+        {
+            Event @event = new Event()
+            {
+                Body = Converter.ToByteArray(submission),
+                Store = true,
+                Channel = _mqSettings.ChannelName,
+                ClientID = _mqSettings.ClientID,
+                ReturnResult = false
+            };
+            sender.SendEvent(@event);
         }
     }
 }

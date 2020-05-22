@@ -12,6 +12,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
+using WaterSubmission.Data;
 using WaterSubmission.Services.AccountingControlService;
 using WaterSubmission.Services.PricingService;
 using WaterSubmission.Services.StatusControlService;
@@ -20,16 +21,26 @@ namespace WaterSubmission
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IWebHostEnvironment env, IConfiguration configuration)
         {
-            Configuration = configuration;
+            CurrentEnvironment = env;
+            Configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json")
+                .AddJsonFile($"appsettings.{CurrentEnvironment.EnvironmentName}.json")
+                .AddEnvironmentVariables()
+                .Build();
         }
 
         public IConfiguration Configuration { get; }
+        private IWebHostEnvironment CurrentEnvironment { get; set; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            IAccountControlKubeMQSettings mqSettings = new AccountControlKubeMQSettings();
+            Configuration.GetSection("AccountControlKubeMQSettings").Bind(mqSettings);
+            services.AddSingleton(mqSettings);
+
             services.AddControllers();
 
             services.AddScoped<IAccountingControlService, AccountingControlService>();
