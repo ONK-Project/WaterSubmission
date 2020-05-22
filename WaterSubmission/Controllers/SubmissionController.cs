@@ -1,14 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using WaterSubmission.Services.AccountingControlService;
 using WaterSubmission.Services.PricingService;
-using WaterSubmission.Services.StatusControlService;
 using Models;
 using KubeMQ.SDK.csharp.Events.LowLevel;
-using Microsoft.Extensions.Configuration;
 using WaterSubmission.Data;
 using KubeMQ.SDK.csharp.Tools;
+using WaterSubmission.Services;
 
 namespace WaterSubmission.Controllers
 {
@@ -18,24 +16,21 @@ namespace WaterSubmission.Controllers
     {
         private readonly IAccountControlKubeMQSettings _mqSettings;
         private readonly ILogger<SubmissionController> _logger;
-        private readonly IAccountingControlService _accountingControlService;
-        private readonly IStatusControlService _statusControlService;
         private readonly IPricingService _pricingService;
+        private readonly ISubmissionService _submissionService;
+
         private Sender sender;
 
         public SubmissionController(
             IAccountControlKubeMQSettings mqSettings,
-            ILogger<SubmissionController> logger, 
-            IAccountingControlService accountingControlService,
-            IStatusControlService statusControlService,
-            IPricingService pricingService)
+            ILogger<SubmissionController> logger,
+            IPricingService pricingService,
+            ISubmissionService submissionService)
         {
             _mqSettings = mqSettings;
             _logger = logger;
-            _accountingControlService = accountingControlService;
-            _statusControlService = statusControlService;
             _pricingService = pricingService;
-
+            _submissionService = submissionService;
             sender = new Sender(_mqSettings.KubeMQServerAddress, _logger);
         }
 
@@ -48,6 +43,13 @@ namespace WaterSubmission.Controllers
             raiseSubmissionEvent(submission);
 
             return Ok();
+        }
+
+        [HttpGet]
+        [Route("{id}")]
+        public async Task<Submission> getSubmission(int id)
+        {
+            return await _submissionService.GetSubmission(id);
         }
 
         private PriceRequest CreatePriceRequest(Submission submission) {

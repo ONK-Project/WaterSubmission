@@ -1,21 +1,15 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using WaterSubmission.Data;
-using WaterSubmission.Services.AccountingControlService;
+using WaterSubmission.Services;
 using WaterSubmission.Services.PricingService;
-using WaterSubmission.Services.StatusControlService;
+using WaterSubmission.Services.SubmissionService;
 
 namespace WaterSubmission
 {
@@ -41,11 +35,14 @@ namespace WaterSubmission
             Configuration.GetSection("AccountControlKubeMQSettings").Bind(mqSettings);
             services.AddSingleton(mqSettings);
 
-            services.AddControllers();
+            string connectionString = Configuration.GetSection("ConnectionString").Value;
+            services.AddSingleton(connectionString);
 
-            services.AddScoped<IAccountingControlService, AccountingControlService>();
-            services.AddScoped<IStatusControlService, MockStatusControlService>();
+            services.AddControllers();
+            services.AddDbContext<SubmissionDbContext>(options => options.UseSqlServer(Configuration.GetSection("ConnectionString").Value));
+
             services.AddScoped<IPricingService, PricingService>();
+            services.AddScoped<ISubmissionService, SubmissionService>();
             services.AddScoped<HttpClient, HttpClient>();
 
             services.AddSwaggerGen(c =>
