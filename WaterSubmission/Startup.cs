@@ -39,7 +39,7 @@ namespace WaterSubmission
             Configuration.GetSection(nameof(SubmissionDbSettings)).Bind(submissionDbSettings);
             services.AddSingleton(submissionDbSettings);
 
-
+            services.AddSingleton<ISubmissionService, SubmissionService>();
             services.AddControllers();
 
             services.AddScoped<IPricingService, PricingService>();

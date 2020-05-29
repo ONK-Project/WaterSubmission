@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.Extensions.Configuration;
 using Models;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
@@ -15,14 +16,14 @@ namespace WaterSubmission.Services.SubmissionService
     {
         private readonly IMongoCollection<Submission> _submissions;
 
-        public SubmissionService(SubmissionDbSettings submissionDbSettings)
+        public SubmissionService(ISubmissionDbSettings submissionDbSettings)
         {
             var client = new MongoClient(submissionDbSettings.ConnectionString);
             var database = client.GetDatabase(submissionDbSettings.DatabaseName);
             _submissions = database.GetCollection<Submission>(submissionDbSettings.SubmissionCollectionName);
         }
 
-        public async Task<Submission> GetSubmission(int id)
+        public async Task<Submission> GetSubmission(ObjectId id)
         {
             var filter = new ExpressionFilterDefinition<Submission>(s => s.SubmissionId == id);
             var submission = await _submissions.FindAsync(filter);

@@ -7,6 +7,7 @@ using KubeMQ.SDK.csharp.Events.LowLevel;
 using WaterSubmission.Data;
 using KubeMQ.SDK.csharp.Tools;
 using WaterSubmission.Services;
+using MongoDB.Bson;
 
 namespace WaterSubmission.Controllers
 {
@@ -47,7 +48,7 @@ namespace WaterSubmission.Controllers
 
         [HttpGet]
         [Route("{id}")]
-        public async Task<Submission> getSubmission(int id)
+        public async Task<Submission> getSubmission(ObjectId id)
         {
             return await _submissionService.GetSubmission(id);
         }
