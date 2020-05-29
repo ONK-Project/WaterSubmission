@@ -23,7 +23,7 @@ namespace WaterSubmission.Services.SubmissionService
             _submissions = database.GetCollection<Submission>(submissionDbSettings.SubmissionCollectionName);
         }
 
-        public async Task<Submission> GetSubmission(ObjectId id)
+        public async Task<Submission> GetSubmission(string id)
         {
             var filter = new ExpressionFilterDefinition<Submission>(s => s.SubmissionId == id);
             var submission = await _submissions.FindAsync(filter);
@@ -32,8 +32,7 @@ namespace WaterSubmission.Services.SubmissionService
 
         public Task SaveSubmission(Submission submission)
         {
-            var result = _submissions.InsertOneAsync(submission);
-            return result;
+            return _submissions.InsertOneAsync(submission);
         }
     }
 }

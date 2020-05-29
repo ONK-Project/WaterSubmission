@@ -6,7 +6,7 @@ namespace WaterSubmission.Services
 {
     public interface ISubmissionService
     {
-        Task<Submission> GetSubmission(ObjectId id);
+        Task<Submission> GetSubmission(string id);
         Task SaveSubmission(Submission submission);
     }
 }

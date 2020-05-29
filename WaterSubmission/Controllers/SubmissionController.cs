@@ -48,7 +48,7 @@ namespace WaterSubmission.Controllers
 
         [HttpGet]
         [Route("{id}")]
-        public async Task<Submission> getSubmission(ObjectId id)
+        public async Task<Submission> getSubmission(string id)
         {
             return await _submissionService.GetSubmission(id);
         }
