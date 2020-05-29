@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Models;
 using Newtonsoft.Json;
+using System;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -22,6 +23,7 @@ namespace WaterSubmission.Services.PricingService
 
         public async Task<SubmissionPrice> GetPrice(PriceRequest priceRequest) 
         {
+            Console.WriteLine(DateTime.Now.ToString() + " - Get Price called");
             var response = await _httpClient.GetAsync(CreateGetUrl(priceRequest));
             response.EnsureSuccessStatusCode();
             string responseBody = await response.Content.ReadAsStringAsync();

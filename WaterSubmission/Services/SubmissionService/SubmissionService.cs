@@ -25,6 +25,7 @@ namespace WaterSubmission.Services.SubmissionService
 
         public async Task<Submission> GetSubmission(string id)
         {
+            Console.WriteLine(DateTime.Now.ToString() + " - Get submission using id: " + id);
             var filter = new ExpressionFilterDefinition<Submission>(s => s.SubmissionId == id);
             var submission = await _submissions.FindAsync(filter);
             return submission.First();
@@ -32,7 +33,9 @@ namespace WaterSubmission.Services.SubmissionService
 
         public Task SaveSubmission(Submission submission)
         {
-            return _submissions.InsertOneAsync(submission);
+            var savedSubmission = _submissions.InsertOneAsync(submission);
+            Console.WriteLine(DateTime.Now.ToString() + " - Submission saved with id: " + submission.SubmissionId);
+            return savedSubmission;
         }
     }
 }
