@@ -1,11 +1,11 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Storage;
+﻿
 using Microsoft.Extensions.Configuration;
 using Models;
+using MongoDB.Driver;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading.Tasks;
 using WaterSubmission.Data;
 
@@ -13,42 +13,26 @@ namespace WaterSubmission.Services.SubmissionService
 {
     public class SubmissionService : ISubmissionService
     {
-        private DbContextOptions<SubmissionDbContext> _options;
+        private readonly IMongoCollection<Submission> _submissions;
 
-        public SubmissionService(string connectionString)
+        public SubmissionService(SubmissionDbSettings submissionDbSettings)
         {
-            _options = new DbContextOptionsBuilder<SubmissionDbContext>()
-                .UseSqlServer(connectionString)
-                .Options;
+            var client = new MongoClient(submissionDbSettings.ConnectionString);
+            var database = client.GetDatabase(submissionDbSettings.DatabaseName);
+            _submissions = database.GetCollection<Submission>(submissionDbSettings.SubmissionCollectionName);
         }
 
         public async Task<Submission> GetSubmission(int id)
         {
-            using (var context = new SubmissionDbContext(_options))
-            {
-                return await context.Submissions.FindAsync(id);
-            }
+            var filter = new ExpressionFilterDefinition<Submission>(s => s.SubmissionId == id);
+            var submission = await _submissions.FindAsync(filter);
+            return submission.First();
         }
 
-        public async Task SaveSubmission(Submission submission)
+        public Task SaveSubmission(Submission submission)
         {
-            using (var context = new SubmissionDbContext(_options))
-            {
-                await context.Submissions.AddAsync(submission);
-                await context.SaveChangesAsync();
-            }
-        }
-
-        public bool CreateDB()
-        {
-            using (var context = new SubmissionDbContext(_options))
-            {
-                if (true && (context.GetService<IDatabaseCreator>() as RelationalDatabaseCreator).Exists())
-                    return false;
-
-                context.Database.EnsureDeleted();
-                return context.Database.EnsureCreated();
-            }
+            var result = _submissions.InsertOneAsync(submission);
+            return result;
         }
     }
 }

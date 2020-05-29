@@ -5,13 +5,13 @@ using System.Threading.Tasks;
 
 namespace WaterSubmission.Data
 {
-    public interface IAccountControlKubeMQSettings
+    public interface IKubeMQSettings
     {
         string ChannelName { get; set; }
         string ClientID { get; set; }
         string KubeMQServerAddress { get; set; }
     }
-    public class AccountControlKubeMQSettings : IAccountControlKubeMQSettings
+    public class KubeMQSettings : IKubeMQSettings
     {
         public string ChannelName { get; set; }
         public string ClientID { get; set; }

@@ -14,7 +14,7 @@ namespace WaterSubmission.Controllers
     [Route("api/v1/[controller]")]
     public class SubmissionController : ControllerBase
     {
-        private readonly IAccountControlKubeMQSettings _mqSettings;
+        private readonly IKubeMQSettings _mqSettings;
         private readonly ILogger<SubmissionController> _logger;
         private readonly IPricingService _pricingService;
         private readonly ISubmissionService _submissionService;
@@ -22,7 +22,7 @@ namespace WaterSubmission.Controllers
         private Sender sender;
 
         public SubmissionController(
-            IAccountControlKubeMQSettings mqSettings,
+            IKubeMQSettings mqSettings,
             ILogger<SubmissionController> logger,
             IPricingService pricingService,
             ISubmissionService submissionService)
@@ -39,9 +39,9 @@ namespace WaterSubmission.Controllers
         {
             var submissionPrice = await _pricingService.GetPrice(CreatePriceRequest(submission));
             submission.SubmissionPrice = submissionPrice;
-
+            await _submissionService.SaveSubmission(submission);
             raiseSubmissionEvent(submission);
-
+            
             return Ok();
         }
 

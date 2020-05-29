@@ -1,10 +1,10 @@
 using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using WaterSubmission.Data;
 using WaterSubmission.Services;
@@ -31,15 +31,16 @@ namespace WaterSubmission
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            IAccountControlKubeMQSettings mqSettings = new AccountControlKubeMQSettings();
-            Configuration.GetSection("AccountControlKubeMQSettings").Bind(mqSettings);
+            IKubeMQSettings mqSettings = new KubeMQSettings();
+            Configuration.GetSection("KubeMQSettings").Bind(mqSettings);
             services.AddSingleton(mqSettings);
 
-            string connectionString = Configuration.GetSection("ConnectionString").Value;
-            services.AddSingleton(connectionString);
+            ISubmissionDbSettings submissionDbSettings = new SubmissionDbSettings();
+            Configuration.GetSection(nameof(SubmissionDbSettings)).Bind(submissionDbSettings);
+            services.AddSingleton(submissionDbSettings);
+
 
             services.AddControllers();
-            services.AddDbContext<SubmissionDbContext>(options => options.UseSqlServer(Configuration.GetSection("ConnectionString").Value));
 
             services.AddScoped<IPricingService, PricingService>();
             services.AddScoped<ISubmissionService, SubmissionService>();
