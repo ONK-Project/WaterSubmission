@@ -31,6 +31,8 @@ kind: Service
 metadata: 
   name: watersubmission
   namespace: "proj-gr4"
+  labels:
+    app: watersubmission
 spec:
   selector:
     app: watersubmission
